@@ -58,3 +58,6 @@ frontend/macos/Pods/
 *.swo
 .DS_Store
 Thumbs.db
+
+# Release APK
+FaceReg.apk
