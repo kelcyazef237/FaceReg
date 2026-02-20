@@ -1,0 +1,25 @@
+services:
+  api:
+    build: ./backend
+    container_name: facereg-api
+    ports:
+      - "0.0.0.0:8000:8000"
+    volumes:
+      # Persist database between restarts
+      - facereg_db:/app/facereg.db
+      # Persist downloaded models so they survive image rebuilds
+      - facereg_models:/app/models
+      - facereg_uploads:/app/uploads
+    env_file:
+      - ./backend/.env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  facereg_db:
+  facereg_models:
+  facereg_uploads:
