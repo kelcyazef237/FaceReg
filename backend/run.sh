@@ -9,20 +9,28 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# ── Virtualenv (optional but recommended) ──────────────────────────────────
-if [ -d ".venv" ]; then
-  echo "Activating .venv …"
-  source .venv/bin/activate
+# ── Virtualenv — create if missing, always activate ───────────────────────
+if [ ! -d ".venv" ]; then
+  echo "Creating virtualenv…"
+  python3 -m venv .venv
 fi
+source .venv/bin/activate
 
 # ── Copy sample env if .env missing ────────────────────────────────────────
 if [ ! -f ".env" ]; then
   echo "No .env found — copying .env.example → .env"
   cp .env.example .env
-  echo "⚠  Edit .env and set SECRET_KEY / REFRESH_SECRET_KEY before production use"
+  # Auto-generate secret keys
+  SECRET=$(python3 -c "import secrets; print(secrets.token_hex(32))")
+  REFRESH=$(python3 -c "import secrets; print(secrets.token_hex(32))")
+  sed -i "s/change_me_run_openssl_rand_hex_32/$SECRET/" .env
+  sed -i "s/change_me_refresh_run_openssl_rand_hex_32/$REFRESH/" .env
+  echo "✅ .env created with auto-generated secret keys"
 fi
 
 # ── Install / upgrade deps ─────────────────────────────────────────────────
+echo "Installing dependencies…"
+pip install --quiet --upgrade pip
 pip install --quiet -r requirements.txt
 
 # ── Download models if missing ─────────────────────────────────────────────
